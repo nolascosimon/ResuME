@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.resume.app" version="0.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>ResuME</name>
+    <description>Keep your achievements and certificates in one place.</description>
+    <author email="20240031611@my.xu.edu.ph">Nolasco, Masillones, Bonita</author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="BackgroundColor" value="0xFFF4F5FA" />
+    <preference name="StatusBarBackgroundColor" value="#1A3A8F" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    <platform name="android">
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#1A3A8F" />
+        <allow-intent href="market:*" />
+    </platform>
+</widget>

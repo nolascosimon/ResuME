@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: content:; media-src *; connect-src *">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <title>ResuME</title>
+    <link rel="stylesheet" href="lib/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <div id="app">
+        <header id="topbar" class="topbar">
+            <button id="back-btn" class="icon-btn" aria-label="Back" hidden><i class="bi bi-arrow-left"></i></button>
+            <h1 id="title">ResuME</h1>
+        </header>
+        <main id="screen" class="screen"></main>
+        <nav id="tabbar" class="tabbar" hidden>
+            <a data-tab="timeline"><i class="bi bi-list-ul"></i><span>Timeline</span></a>
+            <a data-tab="resumes"><i class="bi bi-file-earmark-text"></i><span>Resumes</span></a>
+            <a data-tab="certificates"><i class="bi bi-award"></i><span>Certificates</span></a>
+            <a data-tab="settings"><i class="bi bi-gear"></i><span>Settings</span></a>
+        </nav>
+        <div id="toast" class="toast-msg"></div>
+        <div id="modal"></div>
+    </div>
+    <script src="cordova.js"></script>
+    <script src="lib/bootstrap.bundle.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/screens.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
