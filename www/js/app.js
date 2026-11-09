@@ -153,13 +153,27 @@ function setupSegment(box, onPick) {
 
 function pickPhoto(fromCamera, done) {
     if (navigator.camera && window.Camera) {
-        navigator.camera.getPicture(function (imageData) {
-            done("data:image/jpeg;base64," + imageData, "photo-" + Date.now() + ".jpg");
-        }, function () {}, {
+        var failed = function () {
+            toast("The camera could not take a photo");
+        };
+        navigator.camera.getPicture(function (uri) {
+            resolveLocalFileSystemURL(uri, function (entry) {
+                entry.file(function (file) {
+                    var reader = new FileReader();
+                    reader.onload = function () {
+                        done(reader.result, "photo-" + Date.now() + ".jpg");
+                    };
+                    reader.onerror = failed;
+                    reader.readAsDataURL(file);
+                }, failed);
+            }, failed);
+        }, function (message) {
+            if (!/no image|cancel|selected/i.test(String(message))) failed();
+        }, {
             quality: 60,
             targetWidth: 800,
             targetHeight: 800,
-            destinationType: Camera.DestinationType.DATA_URL,
+            destinationType: Camera.DestinationType.FILE_URI,
             sourceType: fromCamera ? Camera.PictureSourceType.CAMERA : Camera.PictureSourceType.PHOTOLIBRARY,
             correctOrientation: true
         });
@@ -185,10 +199,52 @@ function pickFile(done) {
     input.type = "file";
     input.accept = "image/*,application/pdf";
     input.onchange = function () {
-        var file = input.files[0];
-        if (file) done(file.name, /\.pdf$/i.test(file.name) ? "pdf" : "image");
+        if (input.files[0]) done(input.files[0]);
     };
     input.click();
+}
+
+function dataUrlToBlob(url) {
+    var parts = url.split(",");
+    var type = parts[0].match(/:(.*?);/)[1];
+    var raw = atob(parts[1]);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) {
+        bytes[i] = raw.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: type });
+}
+
+function storeProof(blob, name, done) {
+    if (!window.cordova || !window.resolveLocalFileSystemURL) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            done(reader.result);
+        };
+        reader.readAsDataURL(blob);
+        return;
+    }
+
+    function failed() {
+        toast("The file could not be saved");
+    }
+
+    var fileName = Date.now() + "-" + name.replace(/[^\w.\-]/g, "_");
+    resolveLocalFileSystemURL(cordova.file.dataDirectory, function (dir) {
+        dir.getFile(fileName, { create: true }, function (file) {
+            file.createWriter(function (writer) {
+                writer.onwriteend = function () {
+                    done(file.nativeURL);
+                };
+                writer.onerror = failed;
+                writer.write(blob);
+            }, failed);
+        }, failed);
+    }, failed);
+}
+
+function proofType(name) {
+    return /\.pdf$/i.test(name) ? "pdf" : "image";
 }
 
 function useAI(name, params) {

@@ -158,15 +158,19 @@ screens.entryForm = {
 
         el.querySelector("#f-cam").onclick = function () {
             pickPhoto(true, function (uri, name) {
-                d.proofs.push({ name: name, type: "image" });
-                showTags();
+                storeProof(dataUrlToBlob(uri), name, function (path) {
+                    d.proofs.push({ id: newId(), name: name, type: "image", file: path });
+                    showTags();
+                });
             });
         };
 
         el.querySelector("#f-file").onclick = function () {
-            pickFile(function (name, type) {
-                d.proofs.push({ name: name, type: type });
-                showTags();
+            pickFile(function (file) {
+                storeProof(file, file.name, function (path) {
+                    d.proofs.push({ id: newId(), name: file.name, type: proofType(file.name), file: path });
+                    showTags();
+                });
             });
         };
 
@@ -295,7 +299,7 @@ screens.scan = {
                 '<div class="btn-row"><button id="sc-later" class="btn btn-navy wide">Save photo with entry</button><button id="sc-retake" class="btn btn-line">Retake</button></div>';
         }
         return html + '<div class="panel"><div class="panel-head">Suggested details <span class="ai-tag">AI</span></div>' +
-            '<div class="kv"><small>Title</small><input id="sc-title" class="bare" value="Cybersecurity Awareness Seminar"></div>' +
+            '<div class="kv"><small>Title</small><input id="sc-title" class="bare" value="XCites Cybersecurity Event"></div>' +
             '<div class="kv"><small>Issuer</small><input id="sc-issuer" class="bare" value="College of Computer Studies"></div>' +
             '<div class="kv"><small>Date</small><input id="sc-date" type="date" class="bare" value="2025-09-20"></div></div>' +
             '<div class="note"><i class="bi bi-exclamation-circle"></i><span>The AI can be wrong. Check each detail before using it.</span></div>' +
@@ -321,8 +325,10 @@ screens.scan = {
         }
         if (el.querySelector("#sc-later")) {
             el.querySelector("#sc-later").onclick = function () {
-                p.draft.proofs.push({ name: p.name, type: "image", scanLater: true });
-                back();
+                storeProof(dataUrlToBlob(p.photo), p.name, function (path) {
+                    p.draft.proofs.push({ id: newId(), name: p.name, type: "image", file: path, scanLater: true });
+                    back();
+                });
             };
         }
         if (el.querySelector("#sc-use")) {
@@ -335,8 +341,10 @@ screens.scan = {
                     if (!p.draft.semesterPicked) p.draft.semester = getSemester(date);
                     if (!p.draft.past) p.draft.schoolYear = getSchoolYear(date);
                 }
-                p.draft.proofs.push({ name: p.name, type: "image" });
-                back();
+                storeProof(dataUrlToBlob(p.photo), p.name, function (path) {
+                    p.draft.proofs.push({ id: newId(), name: p.name, type: "image", file: path });
+                    back();
+                });
             };
         }
     }
@@ -380,7 +388,7 @@ screens.resumes = {
         var html = '<div class="list-card">';
         data.resumes.forEach(function (r) {
             html += '<div class="row-item" data-open="' + r.id + '"><div class="row-lead"><i class="bi bi-file-earmark-person"></i></div>' +
-                '<div class="row-main"><div class="row-title">' + esc(r.name) + '</div><div class="row-sub">' + r.type + " · " + r.template + " · " + r.entryIds.length + ' entries</div></div>' +
+                '<div class="row-main"><div class="row-title">' + esc(r.name) + '</div><div class="row-sub">' + r.type + " · " + r.template + " · " + r.entryIds.length + (r.entryIds.length == 1 ? " entry" : " entries") + '</div></div>' +
                 '<button class="icon-btn menu-btn" data-menu="' + r.id + '" aria-label="More options"><i class="bi bi-three-dots-vertical"></i></button></div>';
         });
         return html + "</div>";
@@ -610,7 +618,8 @@ screens.preview = {
         };
 
         el.querySelector("#p-pdf").onclick = function () {
-            toast("PDF export is not ready yet");
+            readSummary();
+            makePdf(d);
         };
     }
 };
