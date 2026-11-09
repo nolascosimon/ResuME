@@ -1,6 +1,3 @@
-// SQLite storage layer (cordova-sqlite-storage).
-// The screens keep using the in-memory "data" object. dbLoad() fills it from
-// SQLite when the app starts, and dbSave() writes it back after every change.
 
 var DB_NAME = "resume.db";
 var db = null;
@@ -10,7 +7,6 @@ var DB_SCHEMA = [
         "key TEXT PRIMARY KEY NOT NULL, " +
         "value TEXT)",
 
-    // One row only (id is always 1).
     "CREATE TABLE IF NOT EXISTS profile (" +
         "id INTEGER PRIMARY KEY NOT NULL, " +
         "name TEXT NOT NULL DEFAULT '', " +
@@ -30,12 +26,12 @@ var DB_SCHEMA = [
         "description TEXT NOT NULL DEFAULT '', " +
         "position INTEGER NOT NULL DEFAULT 0)",
 
-    // Proof linked to an entry. One entry can have many.
     "CREATE TABLE IF NOT EXISTS proofs (" +
         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
         "entry_id TEXT NOT NULL, " +
         "name TEXT NOT NULL, " +
         "type TEXT NOT NULL, " +
+        "file TEXT NOT NULL DEFAULT '', " +
         "scan_later INTEGER NOT NULL DEFAULT 0, " +
         "position INTEGER NOT NULL DEFAULT 0)",
     "CREATE INDEX IF NOT EXISTS idx_proofs_entry ON proofs (entry_id)",
@@ -84,7 +80,6 @@ function dbRows(rs) {
     return rows;
 }
 
-// Builds the data object from the rows read out of the tables.
 function dbAssemble(raw) {
     var d = emptyData();
     var migrated = false;
@@ -119,6 +114,7 @@ function dbAssemble(raw) {
         var entry = entryById[x.entry_id];
         if (!entry) return;
         var proof = { name: x.name, type: x.type };
+        if (x.file) proof.file = x.file;
         if (x.scan_later == 1) proof.scanLater = true;
         entry.proofs.push(proof);
     });
@@ -140,7 +136,6 @@ function dbAssemble(raw) {
     return { data: d, migrated: migrated };
 }
 
-// Turns the data object into one list of SQL statements (one transaction).
 function dbStatements(d) {
     var st = [
         "DELETE FROM settings",
@@ -164,8 +159,8 @@ function dbStatements(d) {
         st.push(["INSERT INTO entries (id, title, category, date, school_year, semester, description, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [String(e.id), e.title, e.category, e.date, e.schoolYear, e.semester, e.description || "", i]]);
         (e.proofs || []).forEach(function (x, j) {
-            st.push(["INSERT INTO proofs (entry_id, name, type, scan_later, position) VALUES (?, ?, ?, ?, ?)",
-                [String(e.id), x.name, x.type, x.scanLater ? 1 : 0, j]]);
+            st.push(["INSERT INTO proofs (entry_id, name, type, file, scan_later, position) VALUES (?, ?, ?, ?, ?, ?)",
+                [String(e.id), x.name, x.type, x.file || "", x.scanLater ? 1 : 0, j]]);
         });
     });
 
@@ -186,8 +181,6 @@ function dbStatements(d) {
     return st;
 }
 
-// Writes the whole data object in one transaction. The statements are built
-// right away, so later changes to "data" cannot leak into this save.
 function dbSave(done) {
     var statements = dbStatements(data);
     db.sqlBatch(statements, function () {
@@ -199,7 +192,6 @@ function dbSave(done) {
     });
 }
 
-// Old versions kept everything in localStorage. Copy it over once.
 function dbMigrateOld() {
     var saved = null;
     try {
@@ -220,8 +212,6 @@ function dbMigrateOld() {
     }
 }
 
-// Opens the database, creates the tables, loads everything into "data".
-// done() is always called, even if the database cannot be opened.
 function dbLoad(done) {
     function giveUp(err) {
         dbLog("load", err);
@@ -236,7 +226,22 @@ function dbLoad(done) {
         return;
     }
 
+    function addFileColumn(next) {
+        db.executeSql("PRAGMA table_info(proofs)", [], function (rs) {
+            var hasFile = dbRows(rs).some(function (c) { return c.name == "file"; });
+            if (hasFile) {
+                next();
+                return;
+            }
+            db.executeSql("ALTER TABLE proofs ADD COLUMN file TEXT NOT NULL DEFAULT ''", [], next, giveUp);
+        }, giveUp);
+    }
+
     db.sqlBatch(DB_SCHEMA, function () {
+        addFileColumn(readAll);
+    }, giveUp);
+
+    function readAll() {
         var raw = {};
         db.readTransaction(function (tx) {
             tx.executeSql("SELECT key, value FROM settings", [], function (t, rs) { raw.settings = dbRows(rs); });
@@ -262,5 +267,5 @@ function dbLoad(done) {
             }
             done(true);
         });
-    }, giveUp);
+    }
 }
