@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.resume.app" version="0.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+<widget id="com.resume.app" version="0.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>ResuME</name>
     <description>Keep your achievements and certificates in one place.</description>
     <author email="20240031611@my.xu.edu.ph">Nolasco, Masillones, Bonita</author>
