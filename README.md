@@ -17,7 +17,7 @@ Needs Node.js, JDK 17, and Android Studio with the Android SDK.
 
     npm install -g cordova
     cordova platform add android
-    cordova plugin add cordova-plugin-camera cordova-plugin-file cordova-plugin-network-information cordova-plugin-statusbar cordova-plugin-splashscreen
+    cordova plugin add cordova-plugin-camera cordova-plugin-file cordova-plugin-network-information cordova-plugin-statusbar cordova-plugin-splashscreen cordova-sqlite-storage
     cordova build android
 
 The APK is in platforms/android/app/build/outputs/apk/debug/.

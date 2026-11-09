@@ -235,5 +235,15 @@ document.addEventListener("deviceready", function () {
     }, false);
 }, false);
 
-loadData();
-goTab(data.welcomed ? "timeline" : "welcome");
+function startApp() {
+    loadData(function () {
+        goTab(data.welcomed ? "timeline" : "welcome");
+    });
+}
+
+// SQLite is only ready after deviceready. In a plain browser there is no cordova.
+if (window.cordova) {
+    document.addEventListener("deviceready", startApp, false);
+} else {
+    startApp();
+}
