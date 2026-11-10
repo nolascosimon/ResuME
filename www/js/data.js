@@ -16,15 +16,31 @@ var data = {
     reminders: []
 };
 
-function loadData() {
-    var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        data = JSON.parse(saved);
+function loadData(done) {
+    function fromLocalStorage() {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            data = JSON.parse(saved);
+        }
+        done();
+    }
+
+    if (window.sqlitePlugin) {
+        dbLoad(function (ok) {
+            if (ok) done();
+            else fromLocalStorage();
+        });
+    } else {
+        fromLocalStorage();
     }
 }
 
 function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (db) {
+        dbSave();
+    } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
 }
 
 function newId() {

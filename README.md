@@ -2,14 +2,14 @@
 
 Android app for recording college achievements, attaching proof, and generating resumes. Built with Apache Cordova (HTML, CSS, JavaScript).
 
-Milestone 3: the main functions are working. Entries, the profile, and the settings are saved on the phone, proof can be attached with the camera or the file picker, and a resume can be made into a PDF. Reminders, backup, certificate export, and the AI features are still being built.
+Milestone 3: entries, the profile, and the settings are saved in SQLite on the phone. The Timeline and Entry Details use the saved entries, attached proof can be viewed, and a resume can be made into a PDF. Reminders, backup, certificate export, and the AI features are still being built.
 
 ## Branches
 
 - `main`: the Milestone 2 interface.
 - `vince/sqlite-storage`: Member 1, SQLite storage for entries, profile, and settings.
 - `Member-2-Simon-Nolasco`: Member 2, forms, camera and file picker, saved resumes, and PDF export.
-- Member 3: branch to be added.
+- Member 3: Timeline, Entry Details, and proof viewer.
 
 ## Run in a browser
 
