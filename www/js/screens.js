@@ -252,11 +252,13 @@ screens.details = {
     title: "Entry Details",
     render: function (p) {
         var e = findEntry(p.id);
+        if (!e) return emptyMessage("bi-exclamation-circle", "This entry is no longer available.");
         var proofs = '<p class="muted small mb-0">No proof attached.</p>';
-        if (e.proofs.length > 0) {
-            proofs = '<div class="proof-strip">' + e.proofs.map(function (x) {
+        if (e.proofs && e.proofs.length > 0) {
+            proofs = '<div class="proof-strip">' + e.proofs.map(function (x, index) {
                 var icon = x.type == "pdf" ? "bi-file-earmark-pdf" : "bi-image";
-                return '<div class="proof-thumb"><i class="bi ' + icon + '"></i><span>' + esc(x.name) + "</span></div>";
+                return '<button type="button" class="proof-thumb" data-proof-index="' + index + '" aria-label="View ' + esc(x.name) + '">' +
+                    '<i class="bi ' + icon + '"></i><span>' + esc(x.name) + "</span></button>";
             }).join("") + "</div>";
         }
         return '<h2 class="detail-title">' + esc(e.title) + "</h2>" +
@@ -266,6 +268,15 @@ screens.details = {
             '<div class="btn-row section-gap"><button id="d-edit" class="btn btn-line"><i class="bi bi-pencil"></i>Edit</button><button id="d-delete" class="btn btn-danger-line"><i class="bi bi-trash"></i>Delete</button></div>';
     },
     setup: function (el, p) {
+        if (!findEntry(p.id)) return;
+        el.querySelectorAll("[data-proof-index]").forEach(function (button) {
+            button.onclick = function () {
+                go("proofViewer", {
+                    entryId: p.id,
+                    proofIndex: Number(button.getAttribute("data-proof-index"))
+                });
+            };
+        });
         el.querySelector("#d-edit").onclick = function () {
             var draft = JSON.parse(JSON.stringify(findEntry(p.id)));
             draft.editing = true;
@@ -283,6 +294,69 @@ screens.details = {
                 goTab("timeline");
             });
         };
+    }
+};
+
+screens.proofViewer = {
+    title: "Proof Viewer",
+    render: function (p) {
+        var entry = findEntry(p.entryId);
+        var proof = entry && entry.proofs && entry.proofs[p.proofIndex];
+        if (!proof) return emptyMessage("bi-exclamation-circle", "This proof is no longer available.");
+        if (!proof.file) return emptyMessage("bi-file-earmark-x", "The proof file could not be found.");
+
+        if (proof.type == "pdf") {
+            var openButton = window.cordova ?
+                '<button type="button" id="proof-open-pdf" class="btn btn-line w-100 mt-3">Open PDF</button>' : "";
+            return '<iframe class="proof-document" title="' + esc(proof.name) + '" src="' + esc(proof.file) + '"></iframe>' + openButton;
+        }
+        return '<div class="proof-viewer-image"><img id="proof-image" alt="' + esc(proof.name) + '" src="' + esc(proof.file) + '"></div>';
+    },
+    setup: function (el, p) {
+        var entry = findEntry(p.entryId);
+        var proof = entry && entry.proofs && entry.proofs[p.proofIndex];
+        if (!proof || !proof.file) return;
+
+        if (proof.type == "pdf") {
+            var openButton = el.querySelector("#proof-open-pdf");
+            if (!openButton) return;
+            openButton.onclick = function () {
+                var opener = window.cordova && cordova.plugins && cordova.plugins.fileOpener2;
+                if (!opener) {
+                    toast("A PDF viewer is not available on this device");
+                    return;
+                }
+                opener.open(proof.file, "application/pdf", {
+                    success: function () {},
+                    error: function (err) {
+                        console.error("Could not open proof PDF:", err);
+                        toast("The PDF could not be opened");
+                    }
+                });
+            };
+            return;
+        }
+
+        if (!/^data:|^blob:/i.test(proof.file) && window.resolveLocalFileSystemURL) {
+            resolveLocalFileSystemURL(proof.file, function (fileEntry) {
+                fileEntry.file(function (file) {
+                    var reader = new FileReader();
+                    reader.onload = function () {
+                        el.querySelector("#proof-image").src = reader.result;
+                    };
+                    reader.onerror = function () {
+                        toast("The proof image could not be loaded");
+                    };
+                    reader.readAsDataURL(file);
+                }, function (err) {
+                    console.error("Could not read proof image:", err);
+                    toast("The proof image could not be loaded");
+                });
+            }, function (err) {
+                console.error("Could not find proof image:", err);
+                toast("The proof image could not be found");
+            });
+        }
     }
 };
 

@@ -291,5 +291,14 @@ document.addEventListener("deviceready", function () {
     }, false);
 }, false);
 
-loadData();
-goTab(data.welcomed ? "timeline" : "welcome");
+function startApp() {
+    loadData(function () {
+        goTab(data.welcomed ? "timeline" : "welcome");
+    });
+}
+
+if (window.cordova) {
+    document.addEventListener("deviceready", startApp, false);
+} else {
+    startApp();
+}
