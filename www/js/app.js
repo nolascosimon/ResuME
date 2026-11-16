@@ -247,6 +247,16 @@ function proofType(name) {
     return /\.pdf$/i.test(name) ? "pdf" : "image";
 }
 
+function removeProofFiles(proofs) {
+    if (!window.resolveLocalFileSystemURL) return;
+    (proofs || []).forEach(function (proof) {
+        if (!proof.file || /^data:|^blob:/i.test(proof.file)) return;
+        resolveLocalFileSystemURL(proof.file, function (fileEntry) {
+            fileEntry.remove(function () {}, function () {});
+        }, function () {});
+    });
+}
+
 function useAI(name, params) {
     if (data.aiAccepted) {
         go(name, params);

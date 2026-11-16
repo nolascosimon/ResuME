@@ -286,6 +286,8 @@ screens.details = {
         };
         el.querySelector("#d-delete").onclick = function () {
             confirmBox("Delete this entry?", "The entry and its proof will be removed from this phone.", "Delete", function () {
+                                var removed = findEntry(p.id);
+                if (removed) removeProofFiles(removed.proofs);
                 data.entries = data.entries.filter(function (e) { return e.id != p.id; });
                 data.resumes.forEach(function (r) {
                     r.entryIds = r.entryIds.filter(function (id) { return id != p.id; });
@@ -305,10 +307,12 @@ screens.proofViewer = {
         if (!proof) return emptyMessage("bi-exclamation-circle", "This proof is no longer available.");
         if (!proof.file) return emptyMessage("bi-file-earmark-x", "The proof file could not be found.");
 
-        if (proof.type == "pdf") {
-            var openButton = window.cordova ?
-                '<button type="button" id="proof-open-pdf" class="btn btn-line w-100 mt-3">Open PDF</button>' : "";
-            return '<iframe class="proof-document" title="' + esc(proof.name) + '" src="' + esc(proof.file) + '"></iframe>' + openButton;
+                if (proof.type == "pdf") {
+            if (window.cordova) {
+                return '<div class="list-card mb-3"><div class="row-item"><div class="row-lead"><i class="bi bi-file-earmark-pdf"></i></div><div class="row-main"><div class="row-title">' + esc(proof.name) + '</div><div class="row-sub">PDF file</div></div></div></div>' +
+                    '<button type="button" id="proof-open-pdf" class="btn btn-navy w-100">Open PDF</button>';
+            }
+            return '<iframe class="proof-document" title="' + esc(proof.name) + '" src="' + esc(proof.file) + '"></iframe>';
         }
         return '<div class="proof-viewer-image"><img id="proof-image" alt="' + esc(proof.name) + '" src="' + esc(proof.file) + '"></div>';
     },

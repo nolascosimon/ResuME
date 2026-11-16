@@ -1,7 +1,3 @@
-// Semester end-date reminders, using cordova-plugin-local-notification.
-// One notification per semester that is switched on, shown at 9:00 AM on the
-// end date. In a plain browser the plugin is missing, so everything here does nothing.
-
 var REMINDER_HOUR = 9;
 
 function notifPlugin() {
@@ -11,8 +7,6 @@ function notifPlugin() {
     return null;
 }
 
-// The plugin needs a whole number for the notification id, but reminder ids are text.
-// The same reminder id always gives the same number.
 function notifId(reminderId) {
     var text = String(reminderId);
     var hash = 7;
@@ -45,8 +39,6 @@ function canNotify(r) {
     return r.on && when && when.getTime() > Date.now();
 }
 
-// Schedule (or reschedule) one reminder. The plugin asks for the notification
-// permission if it has not been asked yet. If it is refused, a short message tells the person.
 function scheduleReminder(r) {
     var local = notifPlugin();
     if (!local) return;
@@ -64,7 +56,6 @@ function cancelReminder(r) {
     local.cancel(notifId(r.id));
 }
 
-// Runs every time the app opens: clear everything, then schedule all the switched-on semesters again.
 function syncReminders() {
     var local = notifPlugin();
     if (!local) return;
