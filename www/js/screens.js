@@ -810,14 +810,19 @@ screens.reminders = {
         }
         el.querySelectorAll("[data-date]").forEach(function (input) {
             input.onchange = function () {
-                find(input.getAttribute("data-date")).end = input.value;
+                var r = find(input.getAttribute("data-date"));
+                r.end = input.value;
                 saveData();
+                scheduleReminder(r);
             };
         });
         el.querySelectorAll("[data-on]").forEach(function (input) {
             input.onchange = function () {
-                find(input.getAttribute("data-on")).on = input.checked;
+                var r = find(input.getAttribute("data-on"));
+                r.on = input.checked;
                 saveData();
+                if (r.on) scheduleReminder(r);
+                else cancelReminder(r);
             };
         });
         el.querySelector("#rm-add").onclick = function () {
@@ -834,14 +839,16 @@ screens.reminders = {
                         end.classList.add("is-invalid");
                         return;
                     }
-                    data.reminders.push({
+                    var added = {
                         id: newId(),
                         schoolYear: root.querySelector("#a-year").value,
                         semester: root.querySelector("#a-sem").value,
                         end: end.value,
                         on: true
-                    });
+                    };
+                    data.reminders.push(added);
                     saveData();
+                    scheduleReminder(added);
                     closeModal();
                     refresh();
                 };
