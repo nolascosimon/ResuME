@@ -293,6 +293,7 @@ document.addEventListener("deviceready", function () {
 
 function startApp() {
     loadData(function () {
+        syncReminders();
         goTab(data.welcomed ? "timeline" : "welcome");
     });
 }
